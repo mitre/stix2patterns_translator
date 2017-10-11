@@ -1,0 +1,2 @@
+from stix2patterns_translator.search_platforms import elastic_query_string
+from stix2patterns_translator.search_platforms import splunk_search

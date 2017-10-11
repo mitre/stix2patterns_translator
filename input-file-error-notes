@@ -1,0 +1,20 @@
+Input files w/ regex issues:
+	anded_one_regex.json
+	anded_two_regex.json
+	car_2013_05_002.json
+	not_like.json
+
+General errors:
+	car_2013_03_001.json - unable to map process.parent_ref.parent_ref
+into CAR query
+	timestamp.json
+
+cim-splunk mapping errors:
+	car_2014_11_004.json
+	gt_and_is_equal.json
+	gt_and.json
+
+car-elastic mapping failure:
+	followedby_obs_expression.json
+	like_single_char.json - maps, but regex doesn't work
+	like.json

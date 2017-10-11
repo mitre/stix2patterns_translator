@@ -1,0 +1,145 @@
+from enum import Enum
+import typing
+
+
+class ComparisonComparators(Enum):
+    """ Used inside a Comparison Expression to describe a relationship between a field and value. """
+    (
+        Equal,
+        NotEqual,
+        GreaterThan,
+        LessThan,
+        GreaterThanOrEqual,
+        LessThanOrEqual,
+        In,
+        Like,
+        Matches,
+        IsSubSet,
+        IsSuperSet
+    ) = range(11)
+
+    def __repr__(self):
+        return self._name_
+
+class ComparisonExpressionOperators(Enum):
+    """ Used to combine two Comparison Expressions together inside an ObservationExpression"""
+    (
+        And,
+        Or
+    ) = range(2)
+
+    def __repr__(self):
+        return self._name_
+
+
+class ObservationOperators(Enum):
+    """ Used to combine two or more ObservationExpressions."""
+    (
+        And,
+        Or,
+        FollowedBy
+    ) = range(3)
+
+    def __repr__(self):
+        return self._name_
+
+
+class STIX2Value:
+    pass
+
+
+class SetValue(STIX2Value):
+    def __init__(self):
+        self.values = []
+        self.is_open = True
+
+    def append(self, value):
+        if self.is_open:
+            self.values.append(value)
+        else:
+            raise RuntimeError("Cannot append to closed Set")
+
+    def close(self):
+        self.is_open = False
+
+    def element_iterator(self):
+        for value in self.values:
+            yield str(value)
+
+    def __str__(self):
+        return "({})".format(str(self.values).lstrip('[').rstrip(']'))
+
+
+class BaseComparisonExpression:
+    pass
+
+
+class ComparisonExpression(BaseComparisonExpression):
+    def __init__(self, object_path, value, comparator: ComparisonComparators, negated: bool=False):
+        if not isinstance(comparator, ComparisonComparators):
+            raise RuntimeWarning("{} is not a ComparisonComparator".format(comparator))
+        self.object_path = object_path
+        self.value = value
+        self.comparator = comparator
+        self.negated = negated
+
+    def __repr__(self):
+        return "ComparisonExpression({field} {comparator} {value})".format(comparator=self.comparator,
+                                                                           field=self.object_path,
+                                                                           value=self.value)
+
+
+class CombinedComparisonExpression(BaseComparisonExpression):
+    def __init__(self, expr1: BaseComparisonExpression, expr2: BaseComparisonExpression,
+                 operator: ComparisonExpressionOperators) -> None:
+        if not all((isinstance(expr1, BaseComparisonExpression), isinstance(expr2, BaseComparisonExpression),
+                   isinstance(operator, ComparisonExpressionOperators))):
+            raise RuntimeWarning("{} constructor called with wrong types".format(__class__))
+        self.expr1 = expr1
+        self.expr2 = expr2
+        self.operator = operator
+
+    def __repr__(self) -> str:
+        return "CombinedComparisonExpression({expr1} {operator} {expr2})".format(expr1=self.expr1,
+                                                                                 operator=self.operator,
+                                                                                 expr2=self.expr2)
+
+
+class BaseObservationExpression:
+    pass
+
+
+class ObservationExpression(BaseObservationExpression):
+    def __init__(self, comparison_expression: BaseComparisonExpression) -> None:
+        if not isinstance(comparison_expression, BaseComparisonExpression):
+            raise RuntimeWarning("{} constructor called with wrong types".format(__class__))
+        self.comparison_expression = comparison_expression
+
+    def __repr__(self) -> str:
+        return "ObservationExpression({expr})".format(expr=self.comparison_expression)
+
+
+class CombinedObservationExpression(BaseObservationExpression):
+    def __init__(self, expr1: BaseObservationExpression, expr2: BaseObservationExpression,
+                 operator: ObservationOperators) -> None:
+        if not all((isinstance(expr1, BaseObservationExpression), isinstance(expr2, BaseObservationExpression),
+                    isinstance(operator, ObservationOperators))):
+            raise RuntimeWarning("{} constructor called with wrong types".format(__class__))
+        self.expr1 = expr1
+        self.expr2 = expr2
+        self.operator = operator
+
+    def __repr__(self) -> str:
+        return "CombinedObservationExpression({expr1} {operator} {expr2})".format(expr1=self.expr1,
+                                                                                  operator=self.operator,
+                                                                                  expr2=self.expr2)
+
+
+class Pattern:
+    def __init__(self, expression: BaseObservationExpression, qualifier=None) -> None:
+        if qualifier:
+            raise NotImplementedError
+        self.expression = expression
+
+    def __repr__(self) -> str:
+        return "Pattern[{expression}]".format(expression=self.expression)
