@@ -19,6 +19,8 @@ setup(
     url='https://github.com/mitre/stix2patterns_translator',
 
     author='The MITRE Corporation',
+    
+    author_email = 'hfoster@mitre.org',
 
     license='Apache License 2.0',
 

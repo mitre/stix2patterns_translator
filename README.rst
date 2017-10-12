@@ -1,5 +1,5 @@
 stix-pattern-translator
-===================
+========================
 
 
 This repository contains a prototype analytic translator that converts `STIX2 Patterning`_
@@ -21,7 +21,7 @@ and replaces CASCADE's own domain-specific language (DSL) with STIX 2.0 Patterni
 Requirements
 ------------
 
--  `Python <https://www.python.org>`__ 3.3, 3.4, 3.5, or 3.6
+-  `Python <https://www.python.org>`__ 3.5 or 3.6
 -  ANTLR grammar runtime (4.7 or newer):
 
    -  `antlr4-python3-runtime <https://pypi.python.org/pypi/antlr4-python3-runtime>`__
@@ -31,7 +31,7 @@ Requirements
 
 Optionally, the Web API requires:
 
-   -  `Flask <https://pypi.python.org/pypi/Flask>`__ (Python 3.3)
+-  `Flask <https://pypi.python.org/pypi/Flask>`__ (Python 3.3)
 
 
 Installation

@@ -114,3 +114,6 @@ ENV/
 ## Vagrant
 .vagrant
 Vagrantfile
+
+# Pandoc README
+README
