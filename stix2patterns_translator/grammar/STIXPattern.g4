@@ -20,6 +20,11 @@ observationExpressionOr
 
 observationExpressionAnd
   : <assoc=left> observationExpressionAnd AND observationExpressionAnd
+  | observationExpressionAction
+  ;
+
+observationExpressionAction
+  : <assoc=left> actionType COLON observationExpression
   | observationExpression
   ;
 
@@ -81,6 +86,11 @@ objectPath
 // generated parser, which enables incremental processing during
 // parsing.
 objectType
+  : IdentifierWithoutHyphen
+  | IdentifierWithHyphen
+  ;
+
+actionType
   : IdentifierWithoutHyphen
   | IdentifierWithHyphen
   ;

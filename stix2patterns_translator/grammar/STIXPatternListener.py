@@ -1,4 +1,4 @@
-# Generated from C:/Users/hfoster/Documents/Projects/analytic-translator/stix2/grammar\STIXPattern.g4 by ANTLR 4.7
+# Generated from STIXPattern.g4 by ANTLR 4.7.1
 from antlr4 import *
 if __name__ is not None and "." in __name__:
     from .STIXPatternParser import STIXPatternParser
@@ -41,6 +41,15 @@ class STIXPatternListener(ParseTreeListener):
 
     # Exit a parse tree produced by STIXPatternParser#observationExpressionAnd.
     def exitObservationExpressionAnd(self, ctx:STIXPatternParser.ObservationExpressionAndContext):
+        pass
+
+
+    # Enter a parse tree produced by STIXPatternParser#observationExpressionAction.
+    def enterObservationExpressionAction(self, ctx:STIXPatternParser.ObservationExpressionActionContext):
+        pass
+
+    # Exit a parse tree produced by STIXPatternParser#observationExpressionAction.
+    def exitObservationExpressionAction(self, ctx:STIXPatternParser.ObservationExpressionActionContext):
         pass
 
 
@@ -257,6 +266,15 @@ class STIXPatternListener(ParseTreeListener):
 
     # Exit a parse tree produced by STIXPatternParser#objectType.
     def exitObjectType(self, ctx:STIXPatternParser.ObjectTypeContext):
+        pass
+
+
+    # Enter a parse tree produced by STIXPatternParser#actionType.
+    def enterActionType(self, ctx:STIXPatternParser.ActionTypeContext):
+        pass
+
+    # Exit a parse tree produced by STIXPatternParser#actionType.
+    def exitActionType(self, ctx:STIXPatternParser.ActionTypeContext):
         pass
 
 

@@ -51,6 +51,7 @@ class SplunkSearchTranslator:
             return combined_expr_format_string.format(expr1=self.translate(expression.expr1),
                                                       expr2=self.translate(expression.expr2))
         else:
+            import ipdb; ipdb.set_trace()
             raise NotImplementedError("Comparison type not implemented")
 
 
@@ -122,6 +123,7 @@ class _ObservationExpressionTranslator:
             return splunk_comparison
 
 def translate_pattern(pattern: Pattern, data_model_mapping):
+    import ipdb; ipdb.set_trace()
     # CAR + Splunk = we want to override the default object scoper, I guess?
     if isinstance(data_model_mapping, CarDataMapper):
         x = SplunkSearchTranslator(pattern, data_model_mapping, object_scoper = object_scopers.car_object_scoper)

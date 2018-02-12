@@ -225,6 +225,7 @@ def generate_query(query_string):
         query = builder.pop()
         logger.debug(query)
     except Exception as e:
+        import ipdb; ipdb.set_trace()
         raise ParserError(e)
 
     return query
