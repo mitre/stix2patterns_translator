@@ -51,7 +51,8 @@ class CarDataMapper:
           "src_port": "src_port",
           "dst_port": "dest_port",
           "protocols[*]": "protocol",
-          "src_payload_ref.payload_bin": "content"
+          "src_payload_ref.payload_bin": "content",
+          "action": "action"
         }
       },
       "process": {
@@ -71,8 +72,8 @@ class CarDataMapper:
           "parent_ref.pid": "ppid",
           "parent_ref.binary_ref.file_name": "parent_exe",
           "parent_ref.binary_ref.parent_directory_ref.path": "parent_image_path",
-          "extensions.windows-process-ext.owner_sid": "sid"
-
+          "extensions.windows-process-ext.owner_sid": "sid",
+          "action": "action"
         }
       },
       "software": None,
@@ -82,7 +83,8 @@ class CarDataMapper:
         "fields": {
           "user_id": "logon_id",
           "account_login": "user",
-          "account_type": "logon_type"
+          "account_type": "logon_type",
+          "action": "action"
         }
       },
       "windows-registry-key": {
@@ -91,6 +93,7 @@ class CarDataMapper:
           "key": "key",
           "values[*]": "value",
           "creator_user_ref.account_login": "user",
+          "action": "action"
         }
       },
       "x509-certificate": None

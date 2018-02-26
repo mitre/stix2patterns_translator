@@ -13,6 +13,7 @@ class CimDataMapper:
           "path": "file_path",
           "created": "file_create_time",
           "modified": "file_modify_time",
+          "action": "action"
         }
       },
       "domain-name": { # Network Traffic
@@ -53,7 +54,8 @@ class CimDataMapper:
           "created": "file_create_time",
           "modified": "file_modify_time",
           "parent_directory_ref.path": "file_path",
-          "size": "file_size"
+          "size": "file_size",
+          "action": "action"
         }
       },
       "ipv4-addr": { # Network traffic
@@ -77,7 +79,8 @@ class CimDataMapper:
           "src_port": "src_port",
           "dst_ref.value": "src",
           "dst_port": "dest_port",
-          "protocols[*]": "protocol"
+          "protocols[*]": "protocol",
+          "action": "action"
         }
       },
       "process": {
@@ -85,20 +88,23 @@ class CimDataMapper:
         "fields": {
           "name": "process",
           "pid": "pid",
-          "creator_user_ref.account_login": "user"
+          "creator_user_ref.account_login": "user",
+          "action": "action"
         }
       },
       "software": None, # This could probably be "inventory"
       "url": {
         "cim_type": "web",
         "fields": {
-          "value": "url"
+          "value": "url",
+          "action": "action"
         }
       },
       "user-account": { # This is where the static objects in STIX breakdown. Could either do this as a login (authentication) or create (change)
         "cim_type": "authentication",
         "fields": {
-          "account_login": "user"
+          "account_login": "user",
+          "action": "action"
         }
       },
       "windows-registry-key": {
@@ -107,6 +113,7 @@ class CimDataMapper:
           "key": "object",
           "values[*]": "result",
           "creator_user_ref.account_login": "user",
+          "action": "action"
         }
       },
       "x509-certificate": { # This mapping isn't really complete, STIX splits up the actual public key, for example, into its components (for some reason)

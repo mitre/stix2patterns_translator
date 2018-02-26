@@ -82,6 +82,10 @@ class _ObservationExpressionTranslator:
 
             # These are the native objects and fields
             object_mapping = self.dmm.map_object(stix_object)
+
+            if (stix_path == 'action' and self.object_scoper.scope_actions):
+                return '({})'.format(self.object_scoper(object_mapping, expression.value))
+
             field_mapping = self.dmm.map_field(stix_object, stix_path)
 
             # This scopes the query to the object
