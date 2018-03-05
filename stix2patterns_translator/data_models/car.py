@@ -1,8 +1,10 @@
-from .base import DataMappingException
+from .base import DataMapper
 
 # TODO: should this really be a class? Could be a module, made it a class
 # in case we have configuration arguments at some point
-class CarDataMapper:
+class CarDataMapper(DataMapper):
+    data_model_name = "CAR"
+    type_name = "car_type"
 
     MAPPINGS = {
       "artifact": None,
@@ -24,7 +26,16 @@ class CarDataMapper:
           "hashes.SHA-256": "sha256_hash",
           "name": "file_name",
           "created": "creation_time",
-          "parent_directory_ref.path": "file_path"
+          "parent_directory_ref.path": "file_path",
+          "action": {
+            "action" : {
+              "create": "create",
+              "delete": "delete",
+              "modify-metadata": "modify",
+              "read": "read",
+              "write": "write"
+            }
+          }
         }
       },
       "ipv4-addr": {
@@ -52,7 +63,6 @@ class CarDataMapper:
           "dst_port": "dest_port",
           "protocols[*]": "protocol",
           "src_payload_ref.payload_bin": "content",
-          "action": "action"
         }
       },
       "process": {
@@ -73,7 +83,12 @@ class CarDataMapper:
           "parent_ref.binary_ref.file_name": "parent_exe",
           "parent_ref.binary_ref.parent_directory_ref.path": "parent_image_path",
           "extensions.windows-process-ext.owner_sid": "sid",
-          "action": "action"
+          "action": {
+            "action" : {
+              "create": "create",
+              "terminate": "terminate"
+            }
+          }
         }
       },
       "software": None,
@@ -84,7 +99,12 @@ class CarDataMapper:
           "user_id": "logon_id",
           "account_login": "user",
           "account_type": "logon_type",
-          "action": "action"
+          "action": {
+            "action" : {
+              "login": "login",
+              "logout": "logout"
+            }
+          }
         }
       },
       "windows-registry-key": {
@@ -93,21 +113,14 @@ class CarDataMapper:
           "key": "key",
           "values[*]": "value",
           "creator_user_ref.account_login": "user",
-          "action": "action"
+          "action": {
+            "action" : {
+              "create": "add",
+              "modify": "edit",
+              "delete": "remove"
+            }
+          }
         }
       },
       "x509-certificate": None
     }
-
-
-    def map_object(self, stix_object_name):
-        if stix_object_name in self.MAPPINGS and self.MAPPINGS[stix_object_name] != None:
-            return self.MAPPINGS[stix_object_name]["car_type"]
-        else:
-            raise DataMappingException("Unable to map object `{}` into CAR".format(stix_object_name))
-
-    def map_field(self, stix_object_name, stix_property_name):
-        if stix_object_name in self.MAPPINGS and stix_property_name in self.MAPPINGS[stix_object_name]["fields"]:
-            return self.MAPPINGS[stix_object_name]["fields"][stix_property_name]
-        else:
-            raise DataMappingException("Unable to map property `{}:{}` into CAR".format(stix_object_name, stix_property_name))

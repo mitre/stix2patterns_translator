@@ -25,11 +25,11 @@ class ElasticQueryStringPatternTranslator:
         ObservationOperators.And: 'OR'  # Treat AND's as OR's -- Unsure how two ObsExps wouldn't cancel each other out.
     }
 
-    def __init__(self, pattern: Pattern, data_model_mapper, base_prefix: str='data_model.', action_prefix: str='action.',
+    def __init__(self, pattern: Pattern, data_model_mapper, base_prefix: str='data_model.',
                  fields_prefix: str='fields.', object_prefix: str='object'):
         self.dmm = data_model_mapper
         self.pattern = pattern
-        self.action_prefix = base_prefix + action_prefix
+        self.base_prefix = base_prefix
         self.fields_prefix = base_prefix + fields_prefix
         self.object_prefix = base_prefix + object_prefix
         self.translated = self.parse_expression(pattern)
@@ -82,23 +82,28 @@ class ElasticQueryStringPatternTranslator:
             # Resolve STIX Object Path to a field in the target Data Model
             stix_object, stix_field = expression.object_path.split(':')
             mapped_object = self.dmm.map_object(stix_object)
-            mapped_field = "{}{}".format(self.fields_prefix, self.dmm.map_field(stix_object, stix_field))
+            if stix_field == 'action':
+                mapped_field = "{}{}".format(self.base_prefix, self.dmm.map_field(stix_object, stix_field))
+            else:
+                mapped_field = "{}{}".format(self.fields_prefix, self.dmm.map_field(stix_object, stix_field))
             scope_to_object = "{}:{}".format(self.object_prefix, mapped_object)
 
             # Resolve the comparison symbol to use in the query string (usually just ':')
             comparator = self.comparator_lookup[expression.comparator]
 
+            mapped_value = self.dmm.map_value(stix_object, stix_field, expression.value)
+
             # Some values are formatted differently based on how they're being compared
             if expression.comparator == ComparisonComparators.Matches:  # needs forward slashes
-                value = self._format_match(expression.value)
+                value = self._format_match(mapped_value)
             elif expression.comparator == ComparisonComparators.In:  # should be (x, y, z, ...)
-                value = self._format_set(expression.value)
+                value = self._format_set(mapped_value)
             elif expression.comparator == ComparisonComparators.Equal or expression.comparator == ComparisonComparators.NotEqual:
-                value = self._format_equality(expression.value)  # Should be in double-quotes
+                value = self._format_equality(mapped_value)  # Should be in double-quotes
             elif expression.comparator == ComparisonComparators.Like:  # '%' -> '*' wildcard, '_' -> '?' single wildcard
-                value = self._format_like(expression.value)
+                value = self._format_like(mapped_value)
             else:
-                value = self._escape_value(expression.value)
+                value = self._escape_value(mapped_value)
 
             comparison_string = "{mapped_field}{comparator}{value}".format(mapped_field=mapped_field,
                                                                            comparator=comparator,

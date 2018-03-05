@@ -82,9 +82,10 @@ class _ObservationExpressionTranslator:
 
             # These are the native objects and fields
             object_mapping = self.dmm.map_object(stix_object)
+            value_mapping = self.dmm.map_value(stix_object, stix_path, expression.value)
 
             if (stix_path == 'action' and self.object_scoper.scope_actions):
-                return '({})'.format(self.object_scoper(object_mapping, expression.value))
+                return '({})'.format(self.object_scoper(object_mapping, value_mapping))
 
             field_mapping = self.dmm.map_field(stix_object, stix_path)
 
@@ -92,7 +93,7 @@ class _ObservationExpressionTranslator:
             object_scoping = self.object_scoper(object_mapping)
 
             # Returns the actual comparison (as a translated string)
-            return self._build_comparison(expression, object_scoping, field_mapping)
+            return self._build_comparison(expression, object_scoping, field_mapping, value_mapping)
         elif isinstance(expression, CombinedComparisonExpression):
             return "({} {} {})".format(
                 self.translate(expression.expr1),
@@ -100,21 +101,21 @@ class _ObservationExpressionTranslator:
                 self.translate(expression.expr2)
             )
 
-    def _build_comparison(self, expression, object_scoping, field_mapping):
+    def _build_comparison(self, expression, object_scoping, field_mapping, value_mapping):
         if expression.comparator in self._comparators:
             comparator = self._comparators[expression.comparator]
             if isinstance(comparator, str):
                 splunk_comparison = self._maybe_negate("{} {} {}".format(
                     field_mapping,
                     comparator,
-                    encoders.simple(expression.value)
+                    encoders.simple(value_mapping)
                 ), expression.negated)
 
                 return "({} AND {})".format(object_scoping, splunk_comparison)
             else:
                 return "({} AND {})".format(
                     object_scoping,
-                    self._maybe_negate(comparator(field_mapping, expression.value), expression.negated)
+                    self._maybe_negate(comparator(field_mapping, value_mapping), expression.negated)
                 )
         else:
             raise NotImplementedError("Haven't implemented comparator")

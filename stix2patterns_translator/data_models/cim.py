@@ -1,8 +1,10 @@
-from .base import DataMappingException
+from .base import DataMapper
 
 # TODO: should this really be a class? Could be a module, made it a class
 # in case we have configuration arguments at some point
-class CimDataMapper:
+class CimDataMapper(DataMapper):
+    data_model_name = "CIM"
+    type_name = "cim_type"
 
     MAPPINGS = {
       "artifact": None,
@@ -13,7 +15,15 @@ class CimDataMapper:
           "path": "file_path",
           "created": "file_create_time",
           "modified": "file_modify_time",
-          "action": "action"
+          "action": {
+            "action": {
+              "create": "created",
+              "delete": "delete",
+              "modify-metadata": "acl_modified", # acl is just one type of metadata. could also be "updated" or "modified"?
+              "read": "read",
+              "write": "modified" # Not sure if this should be "updated" or "modified"
+            }
+          }
         }
       },
       "domain-name": { # Network Traffic
@@ -55,7 +65,15 @@ class CimDataMapper:
           "modified": "file_modify_time",
           "parent_directory_ref.path": "file_path",
           "size": "file_size",
-          "action": "action"
+          "action": {
+            "action": {
+              "create": "created",
+              "delete": "delete",
+              "modify-metadata": "acl_modified", # acl is just one type of metadata. could also be "updated" or "modified"?
+              "read": "read",
+              "write": "modified" # Not sure if this should be "updated" or "modified"
+            }
+          }
         }
       },
       "ipv4-addr": { # Network traffic
@@ -80,31 +98,37 @@ class CimDataMapper:
           "dst_ref.value": "src",
           "dst_port": "dest_port",
           "protocols[*]": "protocol",
-          "action": "action"
         }
       },
       "process": {
         "cim_type": "process",
         "fields": {
           "name": "process",
-          "pid": "pid",
+          "pid": "pid", # don't see this in CIM documentation
           "creator_user_ref.account_login": "user",
-          "action": "action"
+          "action": { # don't see this in CIM documentation
+            "action": {
+
+            }
+          }
         }
       },
-      "software": None, # This could probably be "inventory"
+      "software": None, # This could probably be "inventory". Maybe "malware" also?
       "url": {
         "cim_type": "web",
         "fields": {
           "value": "url",
-          "action": "action"
         }
       },
       "user-account": { # This is where the static objects in STIX breakdown. Could either do this as a login (authentication) or create (change)
         "cim_type": "authentication",
         "fields": {
           "account_login": "user",
-          "action": "action"
+          "action": {
+            "action": {
+
+            }
+          }
         }
       },
       "windows-registry-key": {
@@ -113,7 +137,13 @@ class CimDataMapper:
           "key": "object",
           "values[*]": "result",
           "creator_user_ref.account_login": "user",
-          "action": "action"
+          "action": {
+            "action": {
+              "create": "created",
+              "modify": "modified", # not sure if this should be "updated" or "modified"
+              "delete": "deleted"
+            }
+          }
         }
       },
       "x509-certificate": { # This mapping isn't really complete, STIX splits up the actual public key, for example, into its components (for some reason)
@@ -128,23 +158,3 @@ class CimDataMapper:
         "subject_public_key_algorithm": "ssl_publickey_algorithm"
       }
     }
-
-    # TODO:
-    # This mapping is not super straightforward. It could use the following improvements:
-    # * Registry keys need to pull the path apart from the key name, I believe. Need to investigate with Splunk
-    # * Need to validate that the src and dest aliases are working
-    # * Need to add in the static attributes, like the `object_category` field
-    # * Need to verify "software" == "inventory"
-    # * Need to figure out network traffic when it's for web URLs
-    # * Hashes are kind of hacky, just hardcoded. Probably needs to be a regex
-    def map_object(self, stix_object_name):
-        if stix_object_name in self.MAPPINGS and self.MAPPINGS[stix_object_name] != None:
-            return self.MAPPINGS[stix_object_name]["cim_type"]
-        else:
-            raise DataMappingException("Unable to map object `{}` into CIM".format(stix_object_name))
-
-    def map_field(self, stix_object_name, stix_property_name):
-        if stix_object_name in self.MAPPINGS and stix_property_name in self.MAPPINGS[stix_object_name]["fields"]:
-            return self.MAPPINGS[stix_object_name]["fields"][stix_property_name]
-        else:
-            raise DataMappingException("Unable to map property `{}:{}` into CIM".format(stix_object_name, stix_property_name))
