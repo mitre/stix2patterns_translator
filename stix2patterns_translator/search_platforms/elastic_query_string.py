@@ -1,5 +1,6 @@
 import logging
 import datetime
+import string
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,10 @@ class ElasticQueryStringPatternTranslator:
         self.translated = self.parse_expression(pattern)
 
     @staticmethod
+    def contains_whitespace(s):
+        return any(c in s for c in string.whitespace)
+
+    @staticmethod
     def _format_set(values) -> str:
         gen = values.element_iterator()
         return "({})".format(' OR '.join([ElasticQueryStringPatternTranslator._escape_value(value) for value in gen]))
@@ -68,8 +73,9 @@ class ElasticQueryStringPatternTranslator:
 
     @staticmethod
     def _escape_value(value, comparator=None) -> str:
+        special_chars = ['\\', '"', '(', ')']
         if isinstance(value, str):
-            return '{}'.format(value.replace('\\', '\\\\').replace('\"', '\\"').replace('(', '\\(').replace(')', '\\)'))
+            return ''.join(['\\' + c if c in special_chars else c for c in value])
         else:
             return value
 
