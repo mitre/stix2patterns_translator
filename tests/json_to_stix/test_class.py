@@ -3,6 +3,13 @@ from stix_shifter.src import transformers
 
 
 class TestTransform(object):
+    @staticmethod
+    def get_first(itr, constraint):
+        return next(
+            (obj for obj in itr if constraint(obj)),
+            None
+        )
+
     def test_common_prop(self):
         datasource = {'id': '123', 'name': 'sourcename'}
         map_data = {"time": {
@@ -76,22 +83,30 @@ class TestTransform(object):
         assert(result is not None)
         assert('objects' in result)
         objects = result['objects']
-        assert('0' in objects)
-        object0 = objects['0']
-        assert(object0['type'] == 'ipv4-addr')
-        assert(object0['value'] == ip_address)
-        assert('1' in objects)
-        object1 = objects['1']
-        assert(object1['type'] == 'url')
-        assert(object1['value'] == url)
-        assert('2' in objects)
-        object2 = objects['2']
-        assert(object2['type'] == 'domain-name')
-        assert(object2['value'] == domain)
-        assert('3' in objects)
-        object2 = objects['3']
-        assert(object2['type'] == 'artifact')
-        assert(object2['payload_bin'] == payload)
+        assert(objects.keys() == {'0', '1', '2', '3'})
+
+        vals = objects.values()
+
+        curr_obj = TestTransform.get_first(vals,
+            lambda o: o.get('type') == 'ipv4-addr')
+        assert(curr_obj)
+        assert(curr_obj['value'] == ip_address)
+
+        curr_obj = TestTransform.get_first(vals,
+            lambda o: o.get('type') == 'url')
+        assert(curr_obj)
+        assert(curr_obj['value'] == url)
+
+        curr_obj = TestTransform.get_first(vals,
+            lambda o: o.get('type') == 'domain-name')
+        assert(curr_obj)
+        assert(curr_obj['value'] == domain)
+
+        curr_obj = TestTransform.get_first(vals,
+            lambda o: o.get('type') == 'artifact')
+        assert(curr_obj)
+        assert(curr_obj['payload_bin'] == payload)
+
 
     def test_custom_props(self):
         datasource = {'id': '123', 'name': 'sourcename'}
@@ -224,23 +239,25 @@ class TestTransform(object):
         assert(result is not None)
         assert('objects' in result)
         objects = result['objects']
-        assert(len(objects) == 3)
+        assert(objects.keys() == {'0', '1', '2'})
 
-        assert('0' in objects)  # destinationip
-        object0 = objects['0']
-        assert(object0['type'] == 'ipv4-addr')
-        assert(object0['value'] == "2.2.2.2")
+        nt_object = TestTransform.get_first(objects.values(),
+            lambda obj: obj.get('type') == 'network-traffic')
+        assert(nt_object)
+        assert(nt_object.get('dst_ref'))
+        assert(nt_object.get('src_ref'))
 
-        assert('1' in objects)  # sourceip
-        object1 = objects['1']
-        assert(object1['type'] == 'ipv4-addr')
-        assert(object1['value'] == "1.1.1.1")
+        ip_ref = nt_object.get('dst_ref')
+        assert(ip_ref in objects)  # destinationip
+        ip_obj = objects[ip_ref]
+        assert(ip_obj['type'] == 'ipv4-addr')
+        assert(ip_obj['value'] == "2.2.2.2")
 
-        assert('2' in objects)
-        object2 = objects['2']
-        assert(object2['dst_ref'] == '0')
-        assert(object2['src_ref'] == '1')
-        assert(object2['type'] == 'network-traffic')
+        ip_ref = nt_object.get('src_ref')
+        assert(ip_ref in objects)  # sourceip
+        ip_obj = objects[ip_ref]
+        assert(ip_obj['type'] == 'ipv4-addr')
+        assert(ip_obj['value'] == "1.1.1.1")
 
     def test_to_array_transformer(self):
         data_source = {'id': '123', 'name': 'sourcename'}
