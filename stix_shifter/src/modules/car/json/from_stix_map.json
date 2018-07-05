@@ -1,0 +1,43 @@
+{
+  "ipv4-addr": {
+    "fields": {
+      "value": ["sourceip", "destinationip", "identityip"]
+    }
+  },
+  "ipv6-addr": {
+    "fields": {
+      "value": ["sourceip", "destinationip", "identityip"]
+    }
+  },
+  "url": {
+    "fields": {
+      "value": ["url"]
+    }
+  },
+  "mac-addr": {
+    "fields": {
+      "value": ["sourcemac", "destinationmac"]
+    }
+  },
+  "domain-name": {
+    "fields": {
+      "value": ["domainname"]
+    }
+  },
+  "file": {
+    "fields": {
+      "name": ["filename"]
+    }
+  },
+  "network-traffic": {
+    "fields": {
+      "src_port": ["sourceport"],
+      "dst_port": ["destinationport"]
+    }
+  },
+  "user-account": {
+    "fields": {
+      "user_id": ["username"]
+    }
+  }
+}

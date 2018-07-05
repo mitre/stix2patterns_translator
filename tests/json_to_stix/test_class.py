@@ -14,7 +14,7 @@ class TestTransform(object):
         datasource = {'id': '123', 'name': 'sourcename'}
         map_data = {"time": {
             "key": "created",
-            "type": "value"
+            "cybox": False
         }}
         transformer = None
         options = {}
@@ -36,7 +36,7 @@ class TestTransform(object):
         datasource = {'id': '123', 'name': 'sourcename'}
         map_data = {"time": {
             "key": "first_observed",
-            "type": "value"
+            "cybox": False
         }}
         transformer = None
         options = {}
@@ -57,16 +57,12 @@ class TestTransform(object):
     def test_simple_props(self):
         datasource = {'id': '123', 'name': 'sourcename'}
         map_data = {"ip": {
-            "key": "ipv4-addr.value",
-            "type": "value"
-        }, "url": {"key": "url.value",
-                   "type": "value"},
+            "key": "ipv4-addr.value"
+        }, "url": {"key": "url.value"},
             "domain": {
-            "key": "domain-name.value",
-            "type": "value"
+            "key": "domain-name.value"
         }, "payload": {
-            "key": "artifact.payload_bin",
-            "type": "value"
+            "key": "artifact.payload_bin"
         }
         }
         transformer = None
@@ -111,33 +107,26 @@ class TestTransform(object):
     def test_custom_props(self):
         datasource = {'id': '123', 'name': 'sourcename'}
         map_data = {"protocolid": {
-            "key": "x-com-ibm-ariel.protocol_id",
-            "type": "value",
-            "linked": "ariel"
+            "key": "x_com_ibm_ariel.protocol_id",
+            "cybox": False
         }, "logsourceid": {
-            "key": "x-com-ibm-ariel.log_source_id",
-            "type": "value",
-            "linked": "ariel"
+            "key": "x_com_ibm_ariel.log_source_id",
+            "cybox": False
         }, "qid": {
-            "key": "x-com-ibm-ariel.qid",
-            "type": "value",
-            "linked": "ariel"
+            "key": "x_com_ibm_ariel.qid",
+            "cybox": False
         }, "magnitude": {
-            "key": "x-com-ibm-ariel.magnitude",
-            "type": "value",
-            "linked": "ariel"
+            "key": "x_com_ibm_ariel.magnitude",
+            "cybox": False
         }, "identityip": {
-            "key": "x-com-ibm-ariel.identity_ip",
-            "type": "value",
-            "linked": "ariel"
+            "key": "x_com_ibm_ariel.identity_ip",
+            "cybox": False
         }, "test_linked_value_1": {
-            "key": "x-com-ibm-test-linked-value.value_one",
-            "type": "value",
-            "linked": "testlinked"
+            "key": "x_com_ibm_test_linked_value.value_one",
+            "cybox": False
         }, "test_linked_value_2": {
-            "key": "x-com-ibm-test-linked-value.value_two",
-            "type": "value",
-            "linked": "testlinked"
+            "key": "x_com_ibm_test_linked_value.value_two",
+            "cybox": False
         }}
         transformer = None
         options = {}
@@ -165,8 +154,8 @@ class TestTransform(object):
         map_data = {
             "eventCount": {
                 "key": "number_observed",
-                "type": "value",
-                "transformer": "ToInteger"
+                "transformer": "ToInteger",
+                "cybox": False
             },
         }
         options = {}
@@ -185,8 +174,8 @@ class TestTransform(object):
         map_data = {
             "eventCount": {
                 "key": "number_observed",
-                "type": "value",
-                "transformer": "ToInteger"
+                "transformer": "ToInteger",
+                "cybox": False
             },
         }
         options = {}
@@ -194,6 +183,7 @@ class TestTransform(object):
         result = json_to_stix_translator.convert_to_stix(
             datasource, map_data, data, transformers.get_all_transformers(), options)[0]
         assert(result is not None)
+        print (result)
         assert('number_observed' not in result)
 
     def test_to_string_transformer(self):
@@ -202,33 +192,31 @@ class TestTransform(object):
             "destinationip": [
                 {
                     "key": "ipv4-addr.value",
-                    "type": "value"
+                    "object": "dst_ip"
                 },
                 {
                     "key": "ipv6-addr.value",
-                    "type": "value"
+                    "object": "dst_ip"
                 },
                 {
                     "key": "network-traffic.dst_ref",
-                    "type": "reference",
-                    "linked": "nt",
-                    "transformer": "ToString"
+                    "references": "dst_ip",
+                    "object": "nt"
                 }
             ],
             "sourceip": [
                 {
                     "key": "ipv4-addr.value",
-                    "type": "value"
+                    "object": "src_ip"
                 },
                 {
                     "key": "ipv6-addr.value",
-                    "type": "value"
+                    "object": "src_ip"
                 },
                 {
                     "key": "network-traffic.src_ref",
-                    "type": "reference",
-                    "linked": "nt",
-                    "transformer": "ToString"
+                    "references": "src_ip",
+                    "object": "nt"
                 }
             ]
         }
@@ -265,20 +253,17 @@ class TestTransform(object):
             "destinationport": {
                 "key": "network-traffic.dst_port",
                 "cybox": "true",
-                "linked": "nt",
-                "type": "value"
+                "object": "nt"
             },
             "sourceport": {
                 "key": "network-traffic.src_port",
                 "cybox": "true",
-                "type": "value",
-                "linked": "nt"
+                "object": "nt"
             },
             "protocol": {
                 "key": "network-traffic.protocols",
                 "cybox": "true",
-                "type": "value",
-                "linked": "nt",
+                "object": "nt",
                 "transformer": "ToArray"
             }
         }
