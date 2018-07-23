@@ -21,6 +21,7 @@ class ComparisonComparators(Enum):
     def __repr__(self):
         return self._name_
 
+
 class ComparisonExpressionOperators(Enum):
     """ Used to combine two Comparison Expressions together inside an ObservationExpression"""
     (
@@ -93,7 +94,7 @@ class CombinedComparisonExpression(BaseComparisonExpression):
     def __init__(self, expr1: BaseComparisonExpression, expr2: BaseComparisonExpression,
                  operator: ComparisonExpressionOperators) -> None:
         if not all((isinstance(expr1, BaseComparisonExpression), isinstance(expr2, BaseComparisonExpression),
-                   isinstance(operator, ComparisonExpressionOperators))):
+                    isinstance(operator, ComparisonExpressionOperators))):
             raise RuntimeWarning("{} constructor called with wrong types".format(__class__))
         self.expr1 = expr1
         self.expr2 = expr2
@@ -120,6 +121,9 @@ class ObservationExpression(BaseObservationExpression):
 
 
 class CombinedObservationExpression(BaseObservationExpression):
+    # TODO: Handle check against qualifiers
+    # This method is recursively hit when there are more than two base observation expressions
+    # A CombinedObservationExpression will only contain up to two ObservationExpressions, joined by an ObservationOperator
     def __init__(self, expr1: BaseObservationExpression, expr2: BaseObservationExpression,
                  operator: ObservationOperators) -> None:
         if not all((isinstance(expr1, BaseObservationExpression), isinstance(expr2, BaseObservationExpression),
@@ -135,11 +139,25 @@ class CombinedObservationExpression(BaseObservationExpression):
                                                                                   expr2=self.expr2)
 
 
-class Pattern:
-    def __init__(self, expression: BaseObservationExpression, qualifier=None) -> None:
-        if qualifier:
-            raise NotImplementedError
-        self.expression = expression
+class BaseQualifier:
+    pass
+
+
+class Qualifier(BaseQualifier):
+    def __init__(self, qualifier):
+        self.qualifier = qualifier
 
     def __repr__(self) -> str:
-        return "Pattern[{expression}]".format(expression=self.expression)
+        return "Qualifier({qualifier})".format(qualifier=self.qualifier)
+
+
+class Pattern:
+    def __init__(self, expression: BaseObservationExpression, qualifier: BaseQualifier) -> None:
+        self.expression = expression
+        self.qualifier = qualifier
+
+    def __repr__(self) -> str:
+        if self.qualifier:
+            return "Pattern[{expression}{qualifier}]".format(expression=self.expression, qualifier=self.qualifier)
+        else:
+            return "Pattern[{expression}]".format(expression=self.expression)
