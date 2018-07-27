@@ -186,8 +186,8 @@ class STIXQueryBuilder(STIXPatternListener):
         qualifier_text = qualifier.getText()  # Ex: "START'2016-06-01T00:00:00Z'STOP'2016-06-01T01:11:11Z'"
         observation = ctx.observationExpression()
         expression = self.pop()
-        self.push(expression)
-        self.push(Qualifier(qualifier_text))
+        observation_expression_with_qualifier = Qualifier(qualifier_text, expression)
+        self.push(observation_expression_with_qualifier)
 
     def exitObservationExpressions(self, ctx: STIXPatternParser.ObservationExpressionsContext):
         logger.debug("{} {} {}".format("ObservationExpressions", ctx, ctx.getText()))
@@ -199,12 +199,8 @@ class STIXQueryBuilder(STIXPatternListener):
 
     def exitPattern(self, ctx):
         logger.debug("{} {} {}".format("Pattern", ctx, ctx.getText()))
-        if len(self._stack) > 1:
-            qualifier = self.pop()
-        else:
-            qualifier = None
         observation_expression = self.pop()
-        self.push(Pattern(observation_expression, qualifier))
+        self.push(Pattern(observation_expression))
 
 
 # copied from CASCADE data_model (defined twice)
