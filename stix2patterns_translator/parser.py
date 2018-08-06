@@ -4,9 +4,10 @@ import dateutil.parser
 from antlr4 import CommonTokenStream, ParseTreeWalker, InputStream
 from stix2patterns_translator.grammar import STIXPatternListener, STIXPatternParser, STIXPatternLexer
 from stix2patterns_translator.pattern_objects import ObservationExpression, CombinedComparisonExpression, ObservationOperators, \
-    ComparisonExpressionOperators, ComparisonComparators, SetValue, ComparisonExpression, CombinedObservationExpression, Pattern
+    ComparisonExpressionOperators, ComparisonComparators, SetValue, ComparisonExpression, CombinedObservationExpression, Pattern, Qualifier
 
 logger = logging.getLogger(__name__)
+
 
 class STIXQueryBuilder(STIXPatternListener):
 
@@ -34,8 +35,7 @@ class STIXQueryBuilder(STIXPatternListener):
         # They're not really relevant once they're parsed out, so just remove them
         self.push(ctx.getText().replace("'", ""))
 
-
-    def exitPropTestLike(self, ctx:STIXPatternParser.PropTestLikeContext) -> None:
+    def exitPropTestLike(self, ctx: STIXPatternParser.PropTestLikeContext) -> None:
         logger.debug("{} {} {}".format("PropTestLike", ctx, ctx.getText()))
         value = self.pop()
         object_path = self.pop()
@@ -48,7 +48,7 @@ class STIXQueryBuilder(STIXPatternListener):
         #   exitTimestampLiteral and exitBoolLiteral.
         # self.push(ctx.getText().strip("'"))
 
-    def exitPropTestRegex(self, ctx:STIXPatternParser.PropTestRegexContext) -> None:
+    def exitPropTestRegex(self, ctx: STIXPatternParser.PropTestRegexContext) -> None:
         logger.debug("{} {} {}".format("PropTestRegex", ctx, ctx.getText()))
         logger.debug("stack={}".format(self._stack))
         value = self.pop()
@@ -56,7 +56,7 @@ class STIXQueryBuilder(STIXPatternListener):
         negated = ctx.NOT()
         self.push(ComparisonExpression(object_path, value, ComparisonComparators.Matches, negated=negated))
 
-    def exitPropTestEqual(self, ctx:STIXPatternParser.PropTestEqualContext) -> None:
+    def exitPropTestEqual(self, ctx: STIXPatternParser.PropTestEqualContext) -> None:
         logger.debug("{} {} {} | stack={}".format("PropTestEqual", ctx, ctx.getText(), self._stack))
         value = self.pop()
         object_path = self.pop()
@@ -68,10 +68,9 @@ class STIXQueryBuilder(STIXPatternListener):
             comparator = ComparisonComparators.NotEqual
         else:
             raise RuntimeWarning("Unrecognized Equality Comparator")
-
         self.push(ComparisonExpression(object_path, value, comparator, negated=negated))
 
-    def exitPropTestOrder(self, ctx:STIXPatternParser.PropTestOrderContext) -> None:
+    def exitPropTestOrder(self, ctx: STIXPatternParser.PropTestOrderContext) -> None:
         logger.debug("{} {} {} | stack={}".format("PropTestOrder", ctx, ctx.getText(), self._stack))
         value = self.pop()
         object_path = self.pop()
@@ -90,7 +89,7 @@ class STIXQueryBuilder(STIXPatternListener):
 
         self.push(ComparisonExpression(object_path, value, comparator=comparator, negated=negated))
 
-    def exitPropTestSet(self, ctx:STIXPatternParser.PropTestSetContext) -> None:
+    def exitPropTestSet(self, ctx: STIXPatternParser.PropTestSetContext) -> None:
         logger.debug("{} {} {} | stack={}".format("PropTestSet", ctx, ctx.getText(), self._stack))
         vals = self.pop()
         object_path = self.pop()
@@ -98,14 +97,14 @@ class STIXQueryBuilder(STIXPatternListener):
 
         self.push(ComparisonExpression(object_path, vals, ComparisonComparators.In, negated=negated))
 
-    def enterSetLiteral(self, ctx:STIXPatternParser.SetLiteralContext) -> None:
+    def enterSetLiteral(self, ctx: STIXPatternParser.SetLiteralContext) -> None:
         """ Called when Set Literals begin being parsed.  Since the length is unpredictable, replace the stack
         with a SetValue object. SetValue is also a stack (implements .pop() and .push()).  When the SetLiteral is
         done being parsed, the original stack will be restored, and the SetValue pushed onto it."""
         self._saved_stack = self._stack
         self._stack = SetValue()
 
-    def exitSetLiteral(self, ctx:STIXPatternParser.SetLiteralContext):
+    def exitSetLiteral(self, ctx: STIXPatternParser.SetLiteralContext):
         """Called when SetLiterals are done being parsed. Restore the stack and push the built SetValue object onto
         the top of the stack so it can be used in a comparison expression."""
         if not isinstance(self._stack, SetValue):
@@ -116,7 +115,7 @@ class STIXQueryBuilder(STIXPatternListener):
             self._stack = self._saved_stack
             self.push(set_value)
 
-    def exitOrderableLiteral(self, ctx:STIXPatternParser.OrderableLiteralContext):
+    def exitOrderableLiteral(self, ctx: STIXPatternParser.OrderableLiteralContext):
         """  Can be IntLiteral, FloatLiteral, stringLiteral, BinaryLiteral, HexLiteral, TimestampLiteral """
         logger.debug("{} {} {}".format("OrderableLiteral", ctx, ctx.getText()))
         if ctx.stringLiteral():
@@ -147,7 +146,7 @@ class STIXQueryBuilder(STIXPatternListener):
         exp2 = self.pop()
         self.push(CombinedComparisonExpression(exp1, exp2, ComparisonExpressionOperators.Or))
 
-    def exitStringLiteral(self, ctx:STIXPatternParser.StringLiteralContext) -> None:
+    def exitStringLiteral(self, ctx: STIXPatternParser.StringLiteralContext) -> None:
         logger.debug("{} {} {}".format("String", ctx, ctx.getText()))
         self.push(ctx.getText().strip("'").replace("\\\\", "\\"))
 
@@ -165,7 +164,7 @@ class STIXQueryBuilder(STIXPatternListener):
         # self.push(DataModelQuery(object_name=object_name, action=self.action, query=query))
         self.push(ObservationExpression(comparison_expression))
 
-    def exitObservationExpressionAnd(self, ctx:STIXPatternParser.ObservationExpressionAndContext):
+    def exitObservationExpressionAnd(self, ctx: STIXPatternParser.ObservationExpressionAndContext):
         logger.debug("{} {} {}".format("ObservationExpressionAnd", ctx, ctx.getText()))
         if ctx.AND():
             expr2 = self.pop()
@@ -173,7 +172,7 @@ class STIXQueryBuilder(STIXPatternListener):
             operator = ObservationOperators.And
             self.push(CombinedObservationExpression(expr1, expr2, operator))
 
-    def exitObservationExpressionOr(self, ctx:STIXPatternParser.ObservationExpressionOrContext):
+    def exitObservationExpressionOr(self, ctx: STIXPatternParser.ObservationExpressionOrContext):
         logger.debug("{} {} {}".format("ObservationExpressionOr", ctx, ctx.getText()))
         if ctx.OR():  # Check if there's OR'd Observation Expressions
             expr2 = self.pop()
@@ -181,14 +180,22 @@ class STIXQueryBuilder(STIXPatternListener):
             operator = ObservationOperators.Or
             self.push(CombinedObservationExpression(expr1, expr2, operator))
 
-    def exitObservationExpressions(self, ctx:STIXPatternParser.ObservationExpressionsContext):
+    def exitObservationExpressionStartStop(self, ctx: STIXPatternParser.ObservationExpressionStartStopContext):
+        logger.debug("{} {} {}".format("ObservationExpressionStartStop", ctx, ctx.getText()))
+        qualifier = ctx.startStopQualifier()
+        qualifier_text = qualifier.getText()  # Ex: "START'2016-06-01T00:00:00Z'STOP'2016-06-01T01:11:11Z'"
+        observation = ctx.observationExpression()
+        expression = self.pop()
+        observation_expression_with_qualifier = Qualifier(qualifier_text, expression)
+        self.push(observation_expression_with_qualifier)
+
+    def exitObservationExpressions(self, ctx: STIXPatternParser.ObservationExpressionsContext):
         logger.debug("{} {} {}".format("ObservationExpressions", ctx, ctx.getText()))
         if ctx.FOLLOWEDBY():
             expr2 = self.pop()
             expr1 = self.pop()
             operator = ObservationOperators.FollowedBy
             self.push(CombinedObservationExpression(expr1, expr2, operator))
-
 
     def exitPattern(self, ctx):
         logger.debug("{} {} {}".format("Pattern", ctx, ctx.getText()))

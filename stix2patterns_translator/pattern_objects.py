@@ -21,6 +21,7 @@ class ComparisonComparators(Enum):
     def __repr__(self):
         return self._name_
 
+
 class ComparisonExpressionOperators(Enum):
     """ Used to combine two Comparison Expressions together inside an ObservationExpression"""
     (
@@ -93,7 +94,7 @@ class CombinedComparisonExpression(BaseComparisonExpression):
     def __init__(self, expr1: BaseComparisonExpression, expr2: BaseComparisonExpression,
                  operator: ComparisonExpressionOperators) -> None:
         if not all((isinstance(expr1, BaseComparisonExpression), isinstance(expr2, BaseComparisonExpression),
-                   isinstance(operator, ComparisonExpressionOperators))):
+                    isinstance(operator, ComparisonExpressionOperators))):
             raise RuntimeWarning("{} constructor called with wrong types".format(__class__))
         self.expr1 = expr1
         self.expr2 = expr2
@@ -120,14 +121,35 @@ class ObservationExpression(BaseObservationExpression):
 
 
 class CombinedObservationExpression(BaseObservationExpression):
+    # This method is recursively hit when there are more than two base observation expressions
+    # A CombinedObservationExpression will only contain up to two ObservationExpressions, joined by an ObservationOperator
     def __init__(self, expr1: BaseObservationExpression, expr2: BaseObservationExpression,
                  operator: ObservationOperators) -> None:
-        if not all((isinstance(expr1, BaseObservationExpression), isinstance(expr2, BaseObservationExpression),
-                    isinstance(operator, ObservationOperators))):
-            raise RuntimeWarning("{} constructor called with wrong types".format(__class__))
         self.expr1 = expr1
         self.expr2 = expr2
         self.operator = operator
+
+        self.__check_instances()
+
+    def __check_instances(self):
+
+        if hasattr(self.expr1, 'observation_expression'):
+            wrong_type = not isinstance(self.expr1.observation_expression, BaseObservationExpression)
+        else:
+            wrong_type = not isinstance(self.expr1, BaseObservationExpression)
+
+        if wrong_type:
+            raise RuntimeWarning("{} constructor called with wrong types".format(__class__))
+
+        if hasattr(self.expr2, 'observation_expression'):
+            wrong_type = not isinstance(self.expr2.observation_expression, BaseObservationExpression)
+        else:
+            wrong_type = not isinstance(self.expr2, BaseObservationExpression)
+        if wrong_type:
+            raise RuntimeWarning("{} constructor called with wrong types".format(__class__))
+
+        if not isinstance(self.operator, ObservationOperators):
+            raise RuntimeWarning("{} constructor called with wrong types".format(__class__))
 
     def __repr__(self) -> str:
         return "CombinedObservationExpression({expr1} {operator} {expr2})".format(expr1=self.expr1,
@@ -135,10 +157,23 @@ class CombinedObservationExpression(BaseObservationExpression):
                                                                                   expr2=self.expr2)
 
 
+class BaseQualifier:
+    pass
+
+
+class Qualifier(BaseQualifier):
+    def __init__(self, qualifier, observation_expression: BaseObservationExpression) -> None:
+        if not isinstance(observation_expression, BaseObservationExpression):
+            raise RuntimeWarning("{} constructor called with wrong types".format(__class__))
+        self.qualifier = qualifier
+        self.observation_expression = observation_expression
+
+    def __repr__(self) -> str:
+        return "{observation_expression} Qualifier({qualifier})".format(observation_expression=self.observation_expression, qualifier=self.qualifier)
+
+
 class Pattern:
     def __init__(self, expression: BaseObservationExpression, qualifier=None) -> None:
-        if qualifier:
-            raise NotImplementedError
         self.expression = expression
 
     def __repr__(self) -> str:
