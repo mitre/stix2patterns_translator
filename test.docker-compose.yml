@@ -18,7 +18,7 @@ services:
     image: splunk/splunk:latest
     hostname: splunk
     environment:
-      SPLUNK_START_ARGS: --accept-license --answer-yes
+      SPLUNK_START_ARGS: --accept-license --answer-yes --seed-passwd changeme
       SPLUNK_ENABLE_LISTEN: 9997
       SPLUNK_ADD: tcp 1514
       SPLUNK_USER: root
