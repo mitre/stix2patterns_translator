@@ -11,7 +11,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='stix-pattern-translator',
 
-    version='0.1.0',
+    version='0.2.0',
 
     description='A translator to convert STIX2 patterns into other search platforms (e.g., ElasticSearch) and data models (e.g., CIM)',
     long_description=long_description,
