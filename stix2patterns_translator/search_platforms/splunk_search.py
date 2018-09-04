@@ -44,31 +44,45 @@ class SplunkSearchTranslator:
         elif isinstance(expression, ObservationExpression):
             translator = _ObservationExpressionTranslator(expression, self.dmm, self.object_scoper)
             translated_query_str = translator.translate(expression.comparison_expression)
-            if qualifier is not None:
+            if qualifier:
                 # start time pattern
                 st_pattern = r"(START'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z')"
                 # stop time pattern
                 et_pattern = r"(STOP'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z')"
+
                 # find start and stop time from qualifier string
                 st_arr = re.findall(st_pattern, qualifier)
                 et_arr = re.findall(et_pattern, qualifier)
-                # replace START, STOP and single quotes with empty char in date string
-                earliest =  re.sub(r"(START|')", '', st_arr[0] if st_arr else "")
-                latest   =  re.sub(r"(STOP|')", '', et_arr[0] if et_arr else "")
                 
                 stix_date_format = "%Y-%m-%dT%H:%M:%Sz"
-                splunk_date_format = "%Y-%m-%dT%H:%M:%S.%f" 
+                splunk_date_format = "%m/%d/%Y:%H:%M:%S" 
+                earliest, latest = "", ""
+
+                if st_arr:
+                    # replace START and single quotes with empty char in date string
+                    earliest     = re.sub(r"(START|')", '', st_arr[0] if st_arr else "")
+                    earliest_obj = datetime.strptime(earliest, stix_date_format)
+                    earliest_dt  = earliest_obj.strftime(splunk_date_format)
                 
-                earliest_obj = datetime.strptime(earliest, stix_date_format)
-                # remove 3 trailing digits from date string to match splunk date format # 2018-08-15T13:01:04.000Z
-                earliest_dt = earliest_obj.strftime(splunk_date_format)[:-3]+'Z'
-                
-                latest_obj = datetime.strptime(latest, stix_date_format)
-                latest_dt = latest_obj.strftime(splunk_date_format)[:-3]+'Z'
-                # prepare splunk SPL query
-                return "{query_string} |earliest={earliest} |latest={latest}".format(query_string=translated_query_str, 
+                if et_arr:
+                    # replace STOP and single quotes with empty char in date string
+                    latest     = re.sub(r"(STOP|')", '', et_arr[0] if et_arr else "")
+                    latest_obj = datetime.strptime(latest, stix_date_format)
+                    latest_dt  = latest_obj.strftime(splunk_date_format)
+
+                # prepare splunk SPL query 
+                if earliest and latest:
+                    return '{query_string} earliest="{earliest}" latest="{latest}"'.format(query_string=translated_query_str, 
                                                                                      earliest=earliest_dt,
                                                                                      latest=latest_dt)
+                elif earliest:
+                    return '{query_string} earliest="{earliest}"'.format(query_string=translated_query_str, 
+                                                                                     earliest=earliest_dt)
+                elif latest:
+                     return '{query_string} latest="{latest}"'.format(query_string=translated_query_str, 
+                                                                                     latest=latest_dt)
+                else:
+                    raise NotImplementedError("Qualifier type not implemented")
             else:
                 return "{query_string}".format(query_string=translated_query_str)
         elif isinstance(expression, CombinedObservationExpression):
