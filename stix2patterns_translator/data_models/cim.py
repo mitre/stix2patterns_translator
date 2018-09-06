@@ -85,7 +85,9 @@ class CimDataMapper:
         "fields": {
           "name": "process",
           "pid": "pid",
-          "creator_user_ref.account_login": "user"
+          "creator_user_ref.account_login": "user",
+          "binary_ref.parent_directory_ref.path":"file_path",
+          "binary_ref.name":"file_name"
         }
       },
       "software": None, # This could probably be "inventory"
@@ -111,14 +113,16 @@ class CimDataMapper:
       },
       "x509-certificate": { # This mapping isn't really complete, STIX splits up the actual public key, for example, into its components (for some reason)
         "cim_type": "certificate",
-        "hashes.SHA-256": "ssl_hash",
-        "hashes.SHA-1": "ssl_hash",
-        "version": "ssl_version",
-        "serial_number": "ssl_serial",
-        "signature_algorithm": "ssl_signature_algorithm",
-        "issuer": "ssl_issuer",
-        "subject": "ssl_subject",
-        "subject_public_key_algorithm": "ssl_publickey_algorithm"
+        "fields": {
+          "hashes.SHA-256": "ssl_hash",
+          "hashes.SHA-1": "ssl_hash",
+          "version": "ssl_version",
+          "serial_number": "ssl_serial",
+          "signature_algorithm": "ssl_signature_algorithm",
+          "issuer": "ssl_issuer",
+          "subject": "ssl_subject",
+          "subject_public_key_algorithm": "ssl_publickey_algorithm"
+        }
       }
     }
 
